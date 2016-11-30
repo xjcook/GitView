@@ -12,11 +12,11 @@ public class Api {
 
     public static class Repo {
         public final String name;
-        public final String url;
+        public final String description;
 
-        public Repo(String name, String url) {
+        public Repo(String name, String description) {
             this.name = name;
-            this.url = url;
+            this.description = description;
         }
     }
 

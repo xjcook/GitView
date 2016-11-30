@@ -51,6 +51,8 @@ public class MainActivity extends AppCompatActivity implements LoginFragment.OnS
             String token = sharedPref.getString(ACCESS_TOKEN_PREF_KEY, null);
 
             if (token != null) {
+                // TODO Check token validity
+
                 // Show RepoFragment
                 Bundle args = new Bundle();
                 args.putString(RepoFragment.EXTRA_ACCESS_TOKEN, token);

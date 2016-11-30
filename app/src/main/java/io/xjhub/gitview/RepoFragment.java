@@ -43,6 +43,7 @@ public class RepoFragment extends ListFragment {
         }
     }
 
+    // TODO Add ProgressBar
     private class GetReposTask extends AsyncTask<Void, Void, List<Api.Repo>> {
 
         @Override
@@ -67,13 +68,7 @@ public class RepoFragment extends ListFragment {
         @Override
         protected void onPostExecute(List<Api.Repo> repos) {
             if (repos != null) {
-                ArrayList<String> repoList = new ArrayList<>();
-                for (Api.Repo repo : repos) {
-                    repoList.add(repo.name);
-                }
-
-                ArrayAdapter<String> adapter = new ArrayAdapter<>(getActivity(),
-                        android.R.layout.simple_list_item_1, repoList);
+                RepoListAdapter adapter = new RepoListAdapter(getActivity(), repos);
                 setListAdapter(adapter);
             }
         }
