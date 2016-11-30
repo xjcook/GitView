@@ -9,4 +9,10 @@
         app:actionLayout="@layout/actionbar_progress"
         app:showAsAction="always" />
 
+    <item
+        android:id="@+id/action_sign_out"
+        android:title="@string/sign_out"
+        android:visible="false"
+        app:showAsAction="never" />
+
 </menu>

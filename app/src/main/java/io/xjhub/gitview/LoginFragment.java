@@ -121,14 +121,6 @@ public class LoginFragment extends Fragment {
     }
 
     @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        super.onCreateOptionsMenu(menu, inflater);
-
-        // Inflate the menu; this adds items to the action bar if it is present
-        inflater.inflate(R.menu.menu_login, menu);
-    }
-
-    @Override
     public void onPrepareOptionsMenu(Menu menu) {
         super.onPrepareOptionsMenu(menu);
         MenuItem progressBar = menu.findItem(R.id.action_working);
