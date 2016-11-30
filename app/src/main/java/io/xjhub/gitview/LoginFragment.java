@@ -45,8 +45,8 @@ public class LoginFragment extends Fragment {
                 String code = getCookie(cookies, "code");
                 String state = getCookie(cookies, "state");
 
-                Log.d(LOG_TAG, "Cookie code:" + code);
-                Log.d(LOG_TAG, "Cookie state:" + state);
+                Log.d(LOG_TAG, "Cookie code: " + code);
+                Log.d(LOG_TAG, "Cookie state: " + state);
 
                 // Callback MainActivity if cookie is correct
                 if (code != null && state.equals(getArguments().getString(EXTRA_STATE))) {
