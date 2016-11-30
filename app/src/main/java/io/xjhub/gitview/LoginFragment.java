@@ -66,7 +66,27 @@ public class LoginFragment extends Fragment {
             }
         });
 
+        if (savedInstanceState != null) {
+            Boolean isWebViewVisible = savedInstanceState.getBoolean("isWebViewVisible", false);
+
+            if (isWebViewVisible) {
+                // Go to authorization url
+                mWebView.loadUrl(getArguments().getString(EXTRA_AUTH_URL));
+
+                mButton.setVisibility(Button.GONE);
+                mWebView.setVisibility(WebView.VISIBLE);
+            }
+        }
+
         return rootView;
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+
+        Boolean isWebViewVisible = mWebView.getVisibility() == WebView.VISIBLE;
+        outState.putBoolean("isWebViewVisible", isWebViewVisible);
     }
 
     @Override
