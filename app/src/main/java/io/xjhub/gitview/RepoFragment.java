@@ -29,11 +29,7 @@ public class RepoFragment extends ListFragment {
         // Inflate the layout for this fragment
         View rootView = inflater.inflate(R.layout.fragment_repo, container, false);
 
-        // Get Access Token
-        String token = getArguments().getString(EXTRA_ACCESS_TOKEN);
-        if (token != null) {
-            mAccessToken = token;
-        }
+        mAccessToken = getArguments().getString(EXTRA_ACCESS_TOKEN);
 
         return rootView;
     }
@@ -42,7 +38,9 @@ public class RepoFragment extends ListFragment {
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 
-        new GetReposTask().execute();
+        if (mAccessToken != null) {
+            new GetReposTask().execute();
+        }
     }
 
     private class GetReposTask extends AsyncTask<Void, Void, List<Api.Repo>> {
@@ -55,7 +53,7 @@ public class RepoFragment extends ListFragment {
                     .build();
 
             Api.GitHubService service = retrofit.create(Api.GitHubService.class);
-            Call<List<Api.Repo>> call = service.listRepos("xjcook");
+            Call<List<Api.Repo>> call = service.listRepos("token " + mAccessToken);
 
             try {
                 return call.execute().body();
@@ -68,14 +66,16 @@ public class RepoFragment extends ListFragment {
 
         @Override
         protected void onPostExecute(List<Api.Repo> repos) {
-            ArrayList<String> repoList = new ArrayList<>();
-            for (Api.Repo repo : repos) {
-                repoList.add(repo.name);
-            }
+            if (repos != null) {
+                ArrayList<String> repoList = new ArrayList<>();
+                for (Api.Repo repo : repos) {
+                    repoList.add(repo.name);
+                }
 
-            ArrayAdapter<String> adapter = new ArrayAdapter<>(getActivity(),
-                    android.R.layout.simple_list_item_1, repoList);
-            setListAdapter(adapter);
+                ArrayAdapter<String> adapter = new ArrayAdapter<>(getActivity(),
+                        android.R.layout.simple_list_item_1, repoList);
+                setListAdapter(adapter);
+            }
         }
     }
 }

@@ -48,14 +48,12 @@ public class MainActivity extends AppCompatActivity implements LoginFragment.OnS
 
         if (savedInstanceState == null) {
             SharedPreferences sharedPref = getPreferences(Context.MODE_PRIVATE);
-            String code = sharedPref.getString(ACCESS_TOKEN_PREF_KEY, null);
+            String token = sharedPref.getString(ACCESS_TOKEN_PREF_KEY, null);
 
-            if (code != null) {
-                new CheckAccessTokenTask().execute(code);
-
+            if (token != null) {
                 // Show RepoFragment
                 Bundle args = new Bundle();
-                args.putString(RepoFragment.EXTRA_ACCESS_TOKEN, code);
+                args.putString(RepoFragment.EXTRA_ACCESS_TOKEN, token);
 
                 RepoFragment repoFragment = new RepoFragment();
                 repoFragment.setArguments(args);
@@ -80,30 +78,10 @@ public class MainActivity extends AppCompatActivity implements LoginFragment.OnS
     @Override
     public void onSignedIn(String code) {
         Log.d(LOG_TAG, "Cookie code: " + code);
-
-        new CheckAccessTokenTask().execute(code);
-
-        // Save code into shared preferences
-        SharedPreferences.Editor editor = getPreferences(Context.MODE_PRIVATE).edit();
-        editor.putString(ACCESS_TOKEN_PREF_KEY, code);
-        editor.apply();
-
-        // Show RepoFragment if is not active
-        RepoFragment repoFragment = (RepoFragment) getFragmentManager().findFragmentByTag("repo");
-        if (repoFragment == null) {
-            Bundle args = new Bundle();
-            args.putString(RepoFragment.EXTRA_ACCESS_TOKEN, code);
-
-            repoFragment = new RepoFragment();
-            repoFragment.setArguments(args);
-
-            FragmentTransaction transaction = getFragmentManager().beginTransaction();
-            transaction.replace(R.id.fragment_container, repoFragment, "repo");
-            transaction.commit();
-        }
+        new GetAccessTokenTask().execute(code);
     }
 
-    private class CheckAccessTokenTask extends AsyncTask<String, Void, OAuth2AccessToken> {
+    private class GetAccessTokenTask extends AsyncTask<String, Void, OAuth2AccessToken> {
 
         @Override
         protected OAuth2AccessToken doInBackground(String... codes) {
@@ -112,6 +90,7 @@ public class MainActivity extends AppCompatActivity implements LoginFragment.OnS
                 try {
                     return mAuthService.getAccessToken(code);
                 } catch (OAuthException | IOException e) {
+                    Log.d(LOG_TAG, "Temporary code: " + code);
                     Log.e(LOG_TAG, Log.getStackTraceString(e));
                 }
             }
@@ -121,19 +100,40 @@ public class MainActivity extends AppCompatActivity implements LoginFragment.OnS
 
         @Override
         protected void onPostExecute(OAuth2AccessToken accessToken) {
-            // Show LoginFragment if token is invalidated
-            /*if (accessToken == null) {
-                Bundle args = new Bundle();
-                args.putString(LoginFragment.EXTRA_AUTH_URL, mAuthService.getAuthorizationUrl());
-                args.putString(LoginFragment.EXTRA_STATE, mSecretState);
+            if (accessToken != null) {
+                // Save token into shared preferences
+                SharedPreferences.Editor editor = getPreferences(Context.MODE_PRIVATE).edit();
+                editor.putString(ACCESS_TOKEN_PREF_KEY, accessToken.getAccessToken());
+                editor.apply();
 
-                LoginFragment loginFragment = new LoginFragment();
-                loginFragment.setArguments(args);
+                // Show RepoFragment if is not active
+                RepoFragment repoFragment = (RepoFragment) getFragmentManager().findFragmentByTag("repo");
+                if (repoFragment == null) {
+                    Bundle args = new Bundle();
+                    args.putString(RepoFragment.EXTRA_ACCESS_TOKEN, accessToken.getAccessToken());
 
-                FragmentTransaction transaction = getFragmentManager().beginTransaction();
-                transaction.replace(R.id.fragment_container, loginFragment, "login");
-                transaction.commit();
-            }*/
+                    repoFragment = new RepoFragment();
+                    repoFragment.setArguments(args);
+
+                    FragmentTransaction transaction = getFragmentManager().beginTransaction();
+                    transaction.replace(R.id.fragment_container, repoFragment, "repo");
+                    transaction.commit();
+                }
+            } else {
+                // Show LoginFragment if token is invalidated
+                if (accessToken == null) {
+                    Bundle args = new Bundle();
+                    args.putString(LoginFragment.EXTRA_AUTH_URL, mAuthService.getAuthorizationUrl());
+                    args.putString(LoginFragment.EXTRA_STATE, mSecretState);
+
+                    LoginFragment loginFragment = new LoginFragment();
+                    loginFragment.setArguments(args);
+
+                    FragmentTransaction transaction = getFragmentManager().beginTransaction();
+                    transaction.replace(R.id.fragment_container, loginFragment, "login");
+                    transaction.commit();
+                }
+            }
         }
     }
 }
