@@ -21,7 +21,7 @@ import java.util.Random;
 public class MainActivity extends AppCompatActivity implements LoginFragment.OnSignedInListener {
 
     public static final String LOG_TAG = "MainActivity";
-    public static final String CODE_PREF_KEY = "codeKey";
+    public static final String ACCESS_TOKEN_PREF_KEY = "accessTokenPrefKey";
 
     private static final String CLIENT_ID = "ff406479db68276af5a3";
     private static final String CLIENT_SECRET = "0dbd87cbc9b6a3bb9cec5a8d4414d2ce1a4b19df";
@@ -48,13 +48,18 @@ public class MainActivity extends AppCompatActivity implements LoginFragment.OnS
 
         if (savedInstanceState == null) {
             SharedPreferences sharedPref = getPreferences(Context.MODE_PRIVATE);
-            String code = sharedPref.getString(CODE_PREF_KEY, null);
+            String code = sharedPref.getString(ACCESS_TOKEN_PREF_KEY, null);
 
             if (code != null) {
-                new GetTokenTask().execute(code);
+                new CheckAccessTokenTask().execute(code);
 
                 // Show RepoFragment
+                Bundle args = new Bundle();
+                args.putString(RepoFragment.EXTRA_ACCESS_TOKEN, code);
+
                 RepoFragment repoFragment = new RepoFragment();
+                repoFragment.setArguments(args);
+
                 getFragmentManager().beginTransaction()
                         .add(R.id.fragment_container, repoFragment, "repo").commit();
             } else {
@@ -76,15 +81,29 @@ public class MainActivity extends AppCompatActivity implements LoginFragment.OnS
     public void onSignedIn(String code) {
         Log.d(LOG_TAG, "Cookie code: " + code);
 
-        new GetTokenTask().execute(code);
+        new CheckAccessTokenTask().execute(code);
 
         // Save code into shared preferences
         SharedPreferences.Editor editor = getPreferences(Context.MODE_PRIVATE).edit();
-        editor.putString(CODE_PREF_KEY, code);
+        editor.putString(ACCESS_TOKEN_PREF_KEY, code);
         editor.apply();
+
+        // Show RepoFragment if is not active
+        RepoFragment repoFragment = (RepoFragment) getFragmentManager().findFragmentByTag("repo");
+        if (repoFragment == null) {
+            Bundle args = new Bundle();
+            args.putString(RepoFragment.EXTRA_ACCESS_TOKEN, code);
+
+            repoFragment = new RepoFragment();
+            repoFragment.setArguments(args);
+
+            FragmentTransaction transaction = getFragmentManager().beginTransaction();
+            transaction.replace(R.id.fragment_container, repoFragment, "repo");
+            transaction.commit();
+        }
     }
 
-    private class GetTokenTask extends AsyncTask<String, Void, OAuth2AccessToken> {
+    private class CheckAccessTokenTask extends AsyncTask<String, Void, OAuth2AccessToken> {
 
         @Override
         protected OAuth2AccessToken doInBackground(String... codes) {
@@ -102,21 +121,8 @@ public class MainActivity extends AppCompatActivity implements LoginFragment.OnS
 
         @Override
         protected void onPostExecute(OAuth2AccessToken accessToken) {
-            if (accessToken != null) {
-                Log.d(LOG_TAG, "Got access token: " + accessToken.getRawResponse());
-
-                // Show RepoFragment if is not active
-                RepoFragment repoFragment = (RepoFragment) getFragmentManager().findFragmentByTag("repo");
-                if (repoFragment == null) {
-                    repoFragment = new RepoFragment();
-
-                    FragmentTransaction transaction = getFragmentManager().beginTransaction();
-                    transaction.replace(R.id.fragment_container, repoFragment, "repo");
-                    transaction.commit();
-                }
-
-            } else {
-                // Show LoginFragment
+            // Show LoginFragment if token is invalidated
+            /*if (accessToken == null) {
                 Bundle args = new Bundle();
                 args.putString(LoginFragment.EXTRA_AUTH_URL, mAuthService.getAuthorizationUrl());
                 args.putString(LoginFragment.EXTRA_STATE, mSecretState);
@@ -127,7 +133,7 @@ public class MainActivity extends AppCompatActivity implements LoginFragment.OnS
                 FragmentTransaction transaction = getFragmentManager().beginTransaction();
                 transaction.replace(R.id.fragment_container, loginFragment, "login");
                 transaction.commit();
-            }
+            }*/
         }
     }
 }

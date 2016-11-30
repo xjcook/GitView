@@ -57,13 +57,13 @@ public class LoginFragment extends Fragment {
 
                 String cookies = CookieManager.getInstance().getCookie(url);
                 String code = getCookie(cookies, "code");
-                String state = getCookie(cookies, "state");
+                String secretState = getCookie(cookies, "state");
 
                 Log.d(LOG_TAG, "Cookie code: " + code);
-                Log.d(LOG_TAG, "Cookie state: " + state);
+                Log.d(LOG_TAG, "Cookie state: " + secretState);
 
                 // Callback MainActivity if cookie is correct
-                if (code != null && state.equals(getArguments().getString(EXTRA_STATE))) {
+                if (code != null && secretState.equals(getArguments().getString(EXTRA_STATE))) {
                     mCallback.onSignedIn(code);
                 }
             }
@@ -76,7 +76,7 @@ public class LoginFragment extends Fragment {
 
                 mState = STATE_WORKING;
 
-                // Refresh menu if progress <= 10% || >= 100%
+                // Refresh menu if progress <= 10% | >= 100%
                 if (newProgress <= 10) {
                     ActivityCompat.invalidateOptionsMenu(getActivity());
                 } else if (newProgress >= 100) {
